@@ -1,0 +1,37 @@
+.TH DHCP-HELPER 8
+.SH NAME
+dhcp-helper \- A DHCP/BOOTP relay agent.
+.SH SYNOPSIS
+.B dhcp-helper
+.I [OPTION]...
+.SH "DESCRIPTION"
+.BR dhcp-helper
+is a DHCP and BOOTP relay agent. It listens for DHCP and BOOTP broadcasts on directly connected
+subnets and relays them to DHCP or BOOTP servers elsewhere. It also relays replies from the remote
+servers back to partially configured hosts. Once hosts are fully configured they can communicate
+directly with their servers and no longer need the services of a relay.
+
+.SH OPTIONS
+dhcp-helper requires a configuration file to operate correctly. The
+.B \-f
+option is used to specify a configuration file.
+.TP
+.B \-f <file>
+Specify the configuration file to be used.
+.TP
+.B \-d
+Log all levels to stdout, used for debugging.
+.TP
+.B \-v
+Report the software release version.
+.TP
+.B \-h
+Show usage.
+.SH NOTES
+When running with a bridge, nftables is required.
+.SH AUTHOR
+Written by Jonas Johansson, Mattias Walström and Thomas Eliassson
+.br
+Original written by: Simon Kelley
+
+

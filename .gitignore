@@ -1,0 +1,46 @@
+# http://www.gnu.org/software/automake
+
+*.o
+.deps
+.dirstamp
+
+Makefile
+Makefile.in
+compile
+configure
+depcomp
+install-sh
+missing
+INSTALL
+
+/ar-lib
+/mdate-sh
+/py-compile
+/test-driver
+/ylwrap
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/autoscan.log
+/autoscan-*.log
+/aclocal.m4
+/config.guess
+/config.sub
+/configure.scan
+stamp-h1
+config.*
+!src/include/config.*
+src/include/config.h
+src/include/config.h.in
+# https://www.gnu.org/software/libtool/
+
+/ltmain.sh
+
+# http://www.gnu.org/software/texinfo
+
+/texinfo.tex
+
+dhcp-helper
+
+*~

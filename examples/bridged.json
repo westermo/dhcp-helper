@@ -1,0 +1,50 @@
+{
+    "option82": {
+        "remote-id": {
+            "type": "hostname"
+        }
+    },
+    "servers": [
+        {
+            "address": "192.168.2.1",
+            "port": 1067
+        },
+        {
+            "address": "192.168.3.1",
+            "port": 67
+        }
+    ],
+    "groups": [
+        {
+            "ifname": "vlan1",
+            "giaddr": "192.168.1.6",
+            "ifaces": [
+                {
+                    "ifname": "eth0"
+                },
+                {
+                    "ifname": "eth6",
+                    "circuit-id": "switch10"
+                }
+            ],
+            "server": [
+                {
+                    "address": "192.168.100.2",
+                    "port": 67
+                }
+            ]
+        },
+        {
+            "ifname": "vlan2",
+            "giaddr": "192.168.100.1",
+            "ifaces": [
+                {
+                    "ifname": "eth3"
+                },
+                {
+                    "ifname": "eth8"
+                }
+            ]
+        }
+    ]
+}
