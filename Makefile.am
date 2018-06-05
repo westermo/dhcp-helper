@@ -11,7 +11,7 @@ dhcp_helper_SOURCES = \
 	src/dhcp-helper.c src/conf.c src/packet.c src/options.c src/logging.c src/misc.c
 
 pkginclude_HEADERS = \
-	src/include/conf.h src/include/misc.h src/include/logging.h src/include/options.h src/include/packet.h src/include/queue.h src/include/misc.h
+	src/include/conf.h src/include/misc.h src/include/logging.h src/include/options.h src/include/packet.h src/include/queue.h
 
 dist_noinst_SCRIPTS = autogen.sh
 
@@ -23,7 +23,7 @@ md5-dist:
 	done
 
 # Target to run when building a release
-release: dist md5-dist
+release: distcheck md5-dist
 	@for file in $(DIST_ARCHIVES); do				\
 		printf "$$file    \tDistribution tarball\n";		\
 		printf "$$file.md5\t"; cat $$file.md5 | cut -f1 -d' ';	\
