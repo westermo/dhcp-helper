@@ -59,17 +59,20 @@ int setup_nftables(cfg_t *cfg)
 {
 	cfg_group_t *group;
 	cfg_iface_t *iface;
-	char file[128], cmd[256], ifname[IFNAMSIZ];
+	char file[128] = "dhcp-helper.XXXXXX";
+	char cmd[256], ifname[IFNAMSIZ];
 	FILE *fp;
 	struct nl_sock *sk;
 	int err = 0;
+	int fd;
 
-	if (!tmpnam(file)) {
+	fd = mkstemp(file);
+	if (fd == -1) {
 		syslog2(LOG_ERR, "Could not generate tempfile");
 		return 1;
 	}
 
-	fp = fopen(file, "w+");
+	fp = fdopen(fd, "w+");
 	if (!fp) {
 		syslog2(LOG_ERR, "Could not open tempfile");
 		return 1;
