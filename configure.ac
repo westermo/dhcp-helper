@@ -1,4 +1,4 @@
-AC_INIT([dhcp-helper], [2.0], [], [dhcphelper])
+AC_INIT([dhcp-helper], [2.0], [], [dhcp-helper])
 AC_PREREQ([2.59])
 AC_CONFIG_HEADERS([src/include/config.h])
 
