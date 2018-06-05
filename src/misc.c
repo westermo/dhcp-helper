@@ -59,25 +59,32 @@ int setup_nftables(cfg_t *cfg)
 {
 	cfg_group_t *group;
 	cfg_iface_t *iface;
-	char file[128], cmd[256], ifname[IFNAMSIZ];
+	char file[128] = "/tmp/dhcp-helper.XXXXXX";
+	char cmd[256], ifname[IFNAMSIZ];
 	FILE *fp;
 	struct nl_sock *sk;
 	int err = 0;
+	int fd;
 
-	if (!tmpnam(file)) {
+	fd = mkstemp(file);
+	if (fd == -1) {
 		syslog2(LOG_ERR, "Could not generate tempfile");
 		return 1;
 	}
 
-	fp = fopen(file, "w+");
+	fp = fdopen(fd, "w+");
 	if (!fp) {
+		close(fd);
 		syslog2(LOG_ERR, "Could not open tempfile");
-		return 1;
+		err = 1;
+		goto err_unlink;
 	}
 
 	sk = nl_socket_alloc();
-	if (!sk)
-		goto err;
+	if (!sk) {
+		err = -NLE_NOMEM;
+		goto err_close_fp;
+	}
 
 	err = nl_connect(sk, NETLINK_ROUTE);
 	if (err)
@@ -110,7 +117,6 @@ int setup_nftables(cfg_t *cfg)
 	fprintf(fp, "}\n}");
 
 	fprintf(fp, "\n");
-	fclose(fp);
 
 	snprintf(cmd, sizeof(cmd), "nft -f %s", file);
 	if (system(cmd))
@@ -118,10 +124,12 @@ int setup_nftables(cfg_t *cfg)
 
  err_free_sk:
 	nl_socket_free(sk);
- err:
+ err_close_fp:
+	fclose(fp);
+ err_unlink:
 	unlink(file);
 
-	return 0;
+	return err;
 }
 
 void cleanup_nftables()
