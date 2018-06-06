@@ -16,7 +16,7 @@ with their servers and no longer need the services of a relay.
 
 dhcp-helper is optimized to run on a VLAN aware bridge, but work as well
 for a much simpler use case (see simple.json). If running with a bridge
-notables is required (kernel support and userspace binary). This to stop
+nftables is required (kernel support and userspace binary). This to stop
 DHCP packets that's already processed by the relay agent to be forwarded
 by the bridge.
 
