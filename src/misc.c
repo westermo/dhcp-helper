@@ -20,6 +20,8 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <net/ethernet.h>
+#include <sys/ioctl.h>
+#include <net/if_arp.h>
 
 #include <netlink/route/link.h>
 #include <netlink/route/link/bridge.h>
@@ -142,74 +144,37 @@ void cleanup_nftables()
 
 int add_arp_entry(int ifindex, unsigned char *mac, struct sockaddr_in saddr)
 {
-	struct nl_sock *sk;
-	struct rtnl_neigh *neigh;
-	struct nl_addr *lladdr, *dst;
-	int err = 0;
+	struct arpreq req;
+	struct sockaddr_in *sin;
+	char ifname[IFNAMSIZ];
+	int fd;
 
-	syslog2(LOG_DEBUG, "Add arp entry for address %s, ifindex:%d mac %s", inet_ntoa(saddr.sin_addr), ifindex, mac_ntoa(mac));
+	if_indextoname(ifindex, ifname);
 
-	sk = nl_socket_alloc();
-	if (!sk)
-		return -NLE_NOMEM;
+	syslog2(LOG_DEBUG, "Add arp entry for address %s, iface %s mac %s", inet_ntoa(saddr.sin_addr), ifname, mac_ntoa(mac));
 
-	err = nl_connect(sk, NETLINK_ROUTE);
-	if (err)
-		goto free_sk;
+	bzero(&req, sizeof(req));
+	sin = (struct sockaddr_in *)&req.arp_pa;
+	sin->sin_family = AF_INET;
+	sin->sin_addr.s_addr = saddr.sin_addr.s_addr;
 
-	/* mac */
-	lladdr = nl_addr_alloc(ETH_ALEN);
-	if (!lladdr) {
-		syslog2(LOG_ERR, "Could not allocate netlink address");
-		err = -NLE_NOMEM;
-		goto free_sk;
+	memcpy(req.arp_ha.sa_data, mac, ETHER_ADDR_LEN);
+	req.arp_flags = ATF_COM;
+	strncpy(req.arp_dev, ifname, sizeof(ifname));
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 1) {
+		syslog2(LOG_WARNING, "Failed opening socket to add arp entry");
+		return -1;
 	}
-	nl_addr_set_family(lladdr, AF_LLC);
-	nl_addr_set_prefixlen(lladdr, 48);
-	if (nl_addr_set_binary_addr(lladdr, mac, ETH_ALEN) < 0) {
-		syslog2(LOG_ERR, "Could not set netlink address");
-		err = -NLE_FAILURE;
-		goto free_lladdr;
+	if (ioctl(fd, SIOCSARP, &req) < 0) {
+		syslog2(LOG_WARNING, "Failed adding arp entry for address %s, iface %s mac %s", inet_ntoa(saddr.sin_addr), ifname, mac_ntoa(mac));
+		close(fd);
+		return -1;
 	}
-
-	/* ip */
-	dst = nl_addr_alloc(4);
-	if (!dst) {
-		syslog2(LOG_ERR, "Could not allocate netlink address");
-		err = -NLE_NOMEM;
-		goto free_lladdr;
-	}
-	nl_addr_set_family(dst, AF_INET);
-	nl_addr_set_prefixlen(dst, 32);
-	if (nl_addr_set_binary_addr(dst, &saddr.sin_addr.s_addr, 4) < 0) {
-		syslog2(LOG_ERR, "Could not set netlink address");
-		err = -NLE_FAILURE;
-		goto free_ipaddr;
-	}
-
-	neigh = rtnl_neigh_alloc();
-	if (!neigh) {
-		syslog2(LOG_ERR, "Could allocate netlink neighbour");
-		err = -NLE_NOMEM;
-		goto free_ipaddr;
-	}
-
-	rtnl_neigh_set_ifindex(neigh, ifindex);
-	rtnl_neigh_set_lladdr(neigh, lladdr);
-	rtnl_neigh_set_dst(neigh, dst);
-	rtnl_neigh_set_state(neigh, NUD_REACHABLE);
-
-	rtnl_neigh_add(sk, neigh, NLM_F_CREATE);
-	rtnl_neigh_put(neigh);
-
- free_ipaddr:
-	nl_addr_put(dst);
- free_lladdr:
-	nl_addr_put(lladdr);
- free_sk:
-	nl_socket_free(sk);
+	close(fd);
 
 	syslog2(LOG_DEBUG, "ARP cache entry successfully added.");
 
-	return err;
+	return 0;
 }
