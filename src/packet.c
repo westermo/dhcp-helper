@@ -144,7 +144,7 @@ static int handle_request(cfg_t *cfg, struct dhcp_packet *packet, int ifindex, s
 			while (sendto(send_sd, packet, sz, 0, (struct sockaddr *)&saddr, sizeof(saddr)) == -1 && errno == EINTR) ;
 		}
 	}
-        if (add_fdb_entry(ifindex, packet->chaddr)) {
+	if (add_fdb_entry(ifindex, packet->chaddr)) {
 		syslog2(LOG_ERR, "Failed adding FDB entry to bridge");
 		return 1;
         }

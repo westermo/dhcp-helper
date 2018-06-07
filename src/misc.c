@@ -152,10 +152,10 @@ void cleanup_nftables()
 int add_fdb_entry(int ifindex, unsigned char *mac)
 {
 	int err;
-        struct nl_addr *addr;
-        struct rtnl_neigh *neigh;
-        struct nl_sock *sk;
-        sk = nl_socket_alloc();
+	struct nl_addr *addr;
+	struct rtnl_neigh *neigh;
+	struct nl_sock *sk;
+	sk = nl_socket_alloc();
 
 	if (!sk)
 		return 1;
@@ -172,13 +172,13 @@ int add_fdb_entry(int ifindex, unsigned char *mac)
 		nl_socket_free(sk);
 		return 1;
 	}
-        addr = nl_addr_alloc(ETH_ALEN);
-        if (!addr) {
+	addr = nl_addr_alloc(ETH_ALEN);
+	if (!addr) {
 		syslog2(LOG_ERR, "Could not allocate netlink address");
 		err = -NLE_NOMEM;
-                nl_socket_free(sk);
-                return 1;
-        }
+		nl_socket_free(sk);
+		return 1;
+	}
 
 	syslog2(LOG_DEBUG, "Interface %d is bridged, adding FDB entry", ifindex);
 	nl_addr_set_family(addr, AF_LLC);
