@@ -160,7 +160,7 @@ int add_arp_entry(int ifindex, unsigned char *mac, struct sockaddr_in saddr)
 
 	memcpy(req.arp_ha.sa_data, mac, ETHER_ADDR_LEN);
 	req.arp_flags = ATF_COM;
-	strcpy(req.arp_dev, ifname);
+	strncpy(req.arp_dev, ifname, sizeof(ifname));
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 1) {
