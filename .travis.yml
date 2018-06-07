@@ -1,0 +1,18 @@
+sudo: required
+
+# It is not really needed, other than for showing correct language tag in Travis CI build log.
+language: c
+compiler:
+  - gcc
+  - clang
+
+before_install:
+  - docker run -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
+  - docker ps
+
+install:
+  - docker exec -t travis-ci bash -c "apt-get update;
+    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang"
+
+script:
+  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make"
