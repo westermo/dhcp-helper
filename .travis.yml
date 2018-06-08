@@ -5,6 +5,21 @@ language: c
 compiler:
   - gcc
   - clang
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "QU/ORsne2g2JK1lPEEheHD/CbJoVhB/bg0mqKfujVall7kfr0DkedmUCKSNeDjQBlXO5pJxZHI2wC7GWiBx5G0IMcRZNgnaghCsk1IQVwlp/Oy6YjBDSFKKZIQlZgrPmAOnkg1FwHVhb3c1aojHhW+VsCbYCcHy9Gk47TdXxfEkl7Y/VrK6MLWajMXKW0A2Lmhka5NuWg/MBhhy5fwL3d6B1xAL7g0P5q9XFfNVSYG6nX4yLDT1nwLtKp9rgnW3YwGAIKlDheZ2vxxiG3nKSJu4l49mD/M+BCQ95rWtoBuaJSp+5qh8kTJvwGKOahjb20RacOzpPEzNuGoEOa/EABkW0BKNwzlJP0T7sT/mdYovpwOcidnP4f20DH54I81RJrZwZvM6y8wwxgywK3WRI+c3N6SJtJ49ttrvhpT3DvfrK2bp/lv6Et84undTGwAjdWyw5qj5RiZjAKlr05eomEbgLKCrsJyZQPepqaS2VT2iPTbaOaxOT7CwTCRGoX6sJ1epEj/tl/RhtwH+2EPQGbdyCuCtsd/5znINtyrY2TSJCmYq0YTIougXcWxpAN/CZYoLCgnSLqjlsurBTTWEIDqo6xcc8fL1jTHnV1PozaswcTfk5UxOTRpqmB7XW/JaYOS8Sh/1Pj8GZbKJtq/RFhkH9oNGBdOEau8fVmxjlmXY="
+
+addons:
+  coverity_scan:
+    project:
+      name: "westermo/dhcp-helper"
+      description: "dhcp-helper | A DHCP relay agent, with option82 support"
+    notification_email: lazzer@gmail.com
+    build_command_prepend: "./autogen.sh && ./configure"
+    build_command: "make"
+    branch_pattern: dev
 
 before_install:
   - docker run --privileged -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
