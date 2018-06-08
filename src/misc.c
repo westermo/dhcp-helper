@@ -151,7 +151,7 @@ void cleanup_nftables()
  */
 int add_fdb_entry(int ifindex, unsigned char *mac)
 {
-	int err;
+	int err = 0;
 	struct nl_addr *addr;
 	struct rtnl_neigh *neigh;
 	struct nl_sock *sk;
@@ -162,22 +162,21 @@ int add_fdb_entry(int ifindex, unsigned char *mac)
 
 	err = nl_connect(sk, NETLINK_ROUTE);
 	if (err) {
-		nl_socket_free(sk);
 		syslog(LOG_ERR, "Failed setting connecting to NETLINK_ROUTE: %s", nl_geterror(err));
-		return 1;
+		goto free_sk;
 	}
 
 	if (!iface_is_bridged(sk, ifindex)) {
 		syslog2(LOG_DEBUG, "Interface %d is not bridged, skipping FDB entry", ifindex);
 		nl_socket_free(sk);
-		return 1;
+		return 0; /* No fail, just exit. */
 	}
+
 	addr = nl_addr_alloc(ETH_ALEN);
 	if (!addr) {
 		syslog2(LOG_ERR, "Could not allocate netlink address");
 		err = -NLE_NOMEM;
-		nl_socket_free(sk);
-		return 1;
+		goto free_sk;
 	}
 
 	syslog2(LOG_DEBUG, "Interface %d is bridged, adding FDB entry", ifindex);
@@ -185,15 +184,14 @@ int add_fdb_entry(int ifindex, unsigned char *mac)
 	err = nl_addr_set_binary_addr(addr, mac, ETH_ALEN);
 	if (err) {
 		syslog(LOG_ERR, "Failed creating netlink binary address: %s", nl_geterror(err));
-		nl_socket_free(sk);
-		return 1;
+		goto free_addr;
+		return err;
 	}
 
 	neigh = rtnl_neigh_alloc();
 	if (!neigh) {
-		nl_addr_put(addr);
-		nl_socket_free(sk);
-		return 1;
+		err = -NLE_NOMEM;
+		goto free_addr;
 	}
 	rtnl_neigh_set_family(neigh, PF_BRIDGE);
 	rtnl_neigh_set_lladdr(neigh, addr);
@@ -204,6 +202,13 @@ int add_fdb_entry(int ifindex, unsigned char *mac)
 
 	syslog(LOG_DEBUG, "Adding MAC %02x:%02x:%02x:%02x:%02x:%02x ifindex %d in bridge FDB", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], ifindex);
 	err = rtnl_neigh_add(sk, neigh, NLM_F_CREATE); //NLM_F_CREATE);
+
+free_neigh:
+	rtnl_neigh_put(neigh);
+free_addr:
+	nl_addr_put(addr);
+free_sk:
+	nl_socket_free(sk);
 
 	return err;
 }
