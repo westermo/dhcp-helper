@@ -1,0 +1,1 @@
+TESTS = test-basic.sh
