@@ -65,8 +65,7 @@ int setup_nftables(cfg_t *cfg)
 	char cmd[256], ifname[IFNAMSIZ];
 	FILE *fp;
 	struct nl_sock *sk;
-	int err = 0;
-	int fd;
+	int err = 0, fd, anybridged = 0;
 
 	fd = mkstemp(file);
 	if (fd == -1) {
@@ -97,6 +96,7 @@ int setup_nftables(cfg_t *cfg)
 	TAILQ_FOREACH(group, &cfg->group_list, link) {
 		TAILQ_FOREACH(iface, &group->iface_list, link) {
 			if (iface_is_bridged(sk, iface->ifindex)) {
+				anybridged = 1;
 				if_indextoname(iface->ifindex, ifname);
 				syslog2(LOG_DEBUG, "Interface %s is bridged, setting up nftables", ifname);
 				fprintf(fp, "iif %s ip protocol udp udp dport 67 drop\n", ifname);
@@ -110,6 +110,7 @@ int setup_nftables(cfg_t *cfg)
 		TAILQ_FOREACH(iface, &group->iface_list, link) {
 			/* Only add nftables rules if interface is bridged. */
 			if (iface_is_bridged(sk, iface->ifindex)) {
+				anybridged = 1;
 				if_indextoname(iface->ifindex, ifname);
 				syslog2(LOG_DEBUG, "Interface %s is bridged, setting up nftables", ifname);
 				fprintf(fp, "pkttype broadcast iif %s ip protocol udp udp dport 67 drop\n", ifname);
@@ -119,16 +120,16 @@ int setup_nftables(cfg_t *cfg)
 	fprintf(fp, "}\n}");
 
 	fprintf(fp, "\n");
-
-	snprintf(cmd, sizeof(cmd), "nft -f %s", file);
-	if (system(cmd))
-		syslog2(LOG_ERR, "Failed applying nftables rules");
-
  err_free_sk:
 	nl_socket_free(sk);
  err_close_fp:
 	fclose(fp);
- err_unlink:
+	if (anybridged) {
+		snprintf(cmd, sizeof(cmd), "nft -f %s", file);
+		if (system(cmd))
+			syslog2(LOG_ERR, "Failed applying nftables rules");
+	}
+err_unlink:
 	unlink(file);
 
 	return err;
