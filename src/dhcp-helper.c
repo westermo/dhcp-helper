@@ -400,6 +400,7 @@ int main(int argc, char **argv)
 		switch (c) {
 		case 'f':
 			strncpy(config_file, optarg, sizeof(config_file));
+			config_file[sizeof(config_file)-1] = '\0';
 			break;
 
 		case 'v':
