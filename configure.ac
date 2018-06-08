@@ -61,5 +61,6 @@ AC_SUBST([AM_LDFLAGS])
 
 AC_SUBST([CFLAGS])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+		 tests/Makefile])
 AC_OUTPUT
