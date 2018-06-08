@@ -65,9 +65,8 @@ int setup_nftables(cfg_t *cfg)
 	char cmd[256], ifname[IFNAMSIZ];
 	FILE *fp;
 	struct nl_sock *sk;
-	int err = 0;
-	int fd;
-	mode_t cur_umask;
+	int err = 0, fd, anybridged = 0;
+  mode_t cur_umask;
 
 	cur_umask = umask(0600);
 	fd = mkstemp(file);
@@ -100,6 +99,7 @@ int setup_nftables(cfg_t *cfg)
 	TAILQ_FOREACH(group, &cfg->group_list, link) {
 		TAILQ_FOREACH(iface, &group->iface_list, link) {
 			if (iface_is_bridged(sk, iface->ifindex)) {
+				anybridged = 1;
 				if_indextoname(iface->ifindex, ifname);
 				syslog2(LOG_DEBUG, "Interface %s is bridged, setting up nftables", ifname);
 				fprintf(fp, "iif %s ip protocol udp udp dport 67 drop\n", ifname);
@@ -113,6 +113,7 @@ int setup_nftables(cfg_t *cfg)
 		TAILQ_FOREACH(iface, &group->iface_list, link) {
 			/* Only add nftables rules if interface is bridged. */
 			if (iface_is_bridged(sk, iface->ifindex)) {
+				anybridged = 1;
 				if_indextoname(iface->ifindex, ifname);
 				syslog2(LOG_DEBUG, "Interface %s is bridged, setting up nftables", ifname);
 				fprintf(fp, "pkttype broadcast iif %s ip protocol udp udp dport 67 drop\n", ifname);
@@ -122,16 +123,16 @@ int setup_nftables(cfg_t *cfg)
 	fprintf(fp, "}\n}");
 
 	fprintf(fp, "\n");
-
-	snprintf(cmd, sizeof(cmd), "nft -f %s", file);
-	if (system(cmd))
-		syslog2(LOG_ERR, "Failed applying nftables rules");
-
  err_free_sk:
 	nl_socket_free(sk);
  err_close_fp:
 	fclose(fp);
- err_unlink:
+	if (anybridged) {
+		snprintf(cmd, sizeof(cmd), "nft -f %s", file);
+		if (system(cmd))
+			syslog2(LOG_ERR, "Failed applying nftables rules");
+	}
+err_unlink:
 	unlink(file);
 
 	return err;
@@ -143,6 +144,77 @@ void cleanup_nftables()
 		syslog2(LOG_ERR, "Failed deleting nftables input rules");
 	if (system("nft  delete chain bridge filter " NFT_FWD_CHAIN))
 		syslog2(LOG_ERR, "Failed deleting nftables forward rules");
+}
+
+/**
+   If there is an underlaying switchcore, it may implement 'DHCP-snooping',
+   in this case it will most likely not learn the MAC-address correctly.
+
+   To fix this, add a FDB entry in the bridge, if there are a switch under
+   the FDB entry will be accelerated.
+ */
+int add_fdb_entry(int ifindex, unsigned char *mac)
+{
+	int err = 0;
+	struct nl_addr *addr;
+	struct rtnl_neigh *neigh;
+	struct nl_sock *sk;
+	sk = nl_socket_alloc();
+
+	if (!sk)
+		return 1;
+
+	err = nl_connect(sk, NETLINK_ROUTE);
+	if (err) {
+		syslog(LOG_ERR, "Failed setting connecting to NETLINK_ROUTE: %s", nl_geterror(err));
+		goto free_sk;
+	}
+
+	if (!iface_is_bridged(sk, ifindex)) {
+		syslog2(LOG_DEBUG, "Interface %d is not bridged, skipping FDB entry", ifindex);
+		nl_socket_free(sk);
+		return 0; /* No fail, just exit. */
+	}
+
+	addr = nl_addr_alloc(ETH_ALEN);
+	if (!addr) {
+		syslog2(LOG_ERR, "Could not allocate netlink address");
+		err = -NLE_NOMEM;
+		goto free_sk;
+	}
+
+	syslog2(LOG_DEBUG, "Interface %d is bridged, adding FDB entry", ifindex);
+	nl_addr_set_family(addr, AF_LLC);
+	err = nl_addr_set_binary_addr(addr, mac, ETH_ALEN);
+	if (err) {
+		syslog(LOG_ERR, "Failed creating netlink binary address: %s", nl_geterror(err));
+		goto free_addr;
+		return err;
+	}
+
+	neigh = rtnl_neigh_alloc();
+	if (!neigh) {
+		err = -NLE_NOMEM;
+		goto free_addr;
+	}
+	rtnl_neigh_set_family(neigh, PF_BRIDGE);
+	rtnl_neigh_set_lladdr(neigh, addr);
+	nl_addr_set_prefixlen(addr, 48);
+	rtnl_neigh_set_flags(neigh, NTF_MASTER);
+	rtnl_neigh_set_state(neigh, NUD_REACHABLE);
+	rtnl_neigh_set_ifindex(neigh, ifindex);
+
+	syslog(LOG_DEBUG, "Adding MAC %02x:%02x:%02x:%02x:%02x:%02x ifindex %d in bridge FDB", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], ifindex);
+	err = rtnl_neigh_add(sk, neigh, NLM_F_CREATE); //NLM_F_CREATE);
+
+free_neigh:
+	rtnl_neigh_put(neigh);
+free_addr:
+	nl_addr_put(addr);
+free_sk:
+	nl_socket_free(sk);
+
+	return err;
 }
 
 int add_arp_entry(int ifindex, unsigned char *mac, struct sockaddr_in saddr)
