@@ -202,9 +202,10 @@ static int read_servers(json_t *json, cfg_t *cfg, cfg_group_t *group)
 			return 1;
 		}
 		inet_pton(AF_INET, json_string_value(address), &server->addr);
-		if (read_int(obj, &server->port, "port", 67))
+		if (read_int(obj, &server->port, "port", 67)) {
+			free(server);
 			return 1;
-
+		}
 		if (group)
 			TAILQ_INSERT_TAIL(&group->server_list, server, link);
 		else
@@ -226,6 +227,8 @@ static int read_group(json_t *json, cfg_t *cfg)
 		return 1;
 
 	getifaddrs(&ifap);
+	if (!ifap)
+		return 1;
 
 	TAILQ_INIT(&cfg->group_list);
 	json_array_foreach(arr, i, obj) {
@@ -277,6 +280,7 @@ static int read_group(json_t *json, cfg_t *cfg)
 		TAILQ_INSERT_TAIL(&cfg->group_list, group, link);
 	}
 
+	freeifaddrs(ifap);
 	return 0;
  err:
 	if (group)
