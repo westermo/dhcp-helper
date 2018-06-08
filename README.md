@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/westermo/dhcp-helper.svg?branch=master)](https://travis-ci.com/westermo/dhcp-helper)
+[![License Badge][]][License] [![Travis Status]][Travis] [![Coverity Status]][Coverity Scan]
 # dhcp-helper
 
 This DHCP relay agent is originally written by Simon Kelley
