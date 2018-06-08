@@ -120,16 +120,16 @@ int setup_nftables(cfg_t *cfg)
 	fprintf(fp, "}\n}");
 
 	fprintf(fp, "\n");
+ err_free_sk:
+	nl_socket_free(sk);
+ err_close_fp:
+	fclose(fp);
 	if (anybridged) {
 		snprintf(cmd, sizeof(cmd), "nft -f %s", file);
 		if (system(cmd))
 			syslog2(LOG_ERR, "Failed applying nftables rules");
 	}
- err_free_sk:
-	nl_socket_free(sk);
- err_close_fp:
-	fclose(fp);
- err_unlink:
+err_unlink:
 	unlink(file);
 
 	return err;
