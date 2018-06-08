@@ -1,3 +1,4 @@
+SUBDIRS = tests
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
@@ -23,7 +24,7 @@ md5-dist:
 	done
 
 # Target to run when building a release
-release: distcheck md5-dist
+release: dist md5-dist
 	@for file in $(DIST_ARCHIVES); do				\
 		printf "$$file    \tDistribution tarball\n";		\
 		printf "$$file.md5\t"; cat $$file.md5 | cut -f1 -d' ';	\

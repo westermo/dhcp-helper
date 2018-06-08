@@ -7,12 +7,12 @@ compiler:
   - clang
 
 before_install:
-  - docker run -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
+  - docker run --privileged -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
   - docker ps
 
 install:
   - docker exec -t travis-ci bash -c "apt-get update;
-    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang"
+    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang python-scapy tcpdump iproute2; mv /usr/sbin/tcpdump /usr/local/bin/; ln -s /usr/local/bin/tcpdump /usr/sbin/"
 
 script:
-  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make"
+  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make && make check"
