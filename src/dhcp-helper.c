@@ -78,6 +78,7 @@ static struct dhcp_packet_with_opts *packet_rcv_udp(int sd, unsigned char *buf, 
 	struct iovec iov;
 	struct sockaddr_in saddr;
 
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = control_u.control;
 	msg.msg_controllen = sizeof(control_u);
 	msg.msg_name = &saddr;

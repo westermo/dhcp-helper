@@ -164,6 +164,7 @@ int handle_reply(cfg_t *cfg, struct dhcp_packet *packet, int ifindex, ssize_t sz
 
 	memset(&saddr, 0, sizeof(saddr));
 
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = control_u.control;
 	msg.msg_controllen = sizeof(control_u);
 	msg.msg_name = &saddr;
