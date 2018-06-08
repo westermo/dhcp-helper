@@ -48,10 +48,16 @@ static int iface_is_bridged(struct nl_sock *sk, int ifindex)
 
 	rtnl_link_get_kernel(sk, ifindex, NULL, &link);
 	/* Only add nftables rules if interface is bridged. */
-	if (link && rtnl_link_get_master(link)) {
-		rtnl_link_get_kernel(sk, rtnl_link_get_master(link), NULL, &master);
-		if (rtnl_link_is_bridge(master))
-			return 1;
+	if (link) {
+		if (rtnl_link_get_master(link)) {
+			rtnl_link_get_kernel(sk, rtnl_link_get_master(link), NULL, &master);
+			if (rtnl_link_is_bridge(master)) {
+				rtnl_link_put(master);
+				rtnl_link_put(link);
+				return 1;
+			}
+		}
+		rtnl_link_put(link);
 	}
 
 	return 0;
@@ -207,7 +213,6 @@ int add_fdb_entry(int ifindex, unsigned char *mac)
 	syslog(LOG_DEBUG, "Adding MAC %02x:%02x:%02x:%02x:%02x:%02x ifindex %d in bridge FDB", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], ifindex);
 	err = rtnl_neigh_add(sk, neigh, NLM_F_CREATE); //NLM_F_CREATE);
 
-free_neigh:
 	rtnl_neigh_put(neigh);
 free_addr:
 	nl_addr_put(addr);
