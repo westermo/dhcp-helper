@@ -169,6 +169,7 @@ int handle_reply(cfg_t *cfg, struct dhcp_packet *packet, int ifindex, ssize_t sz
 
 	memset(&saddr, 0, sizeof(saddr));
 
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = control_u.control;
 	msg.msg_controllen = sizeof(control_u);
 	msg.msg_name = &saddr;
@@ -199,6 +200,8 @@ int handle_reply(cfg_t *cfg, struct dhcp_packet *packet, int ifindex, ssize_t sz
 		cmptr = CMSG_FIRSTHDR(&msg);
 		saddr.sin_addr.s_addr = INADDR_BROADCAST;
 		pkt = (struct in_pktinfo *)CMSG_DATA(cmptr);
+		if (!pkt)
+			return 1;
 		pkt->ipi_ifindex = group->ifindex;
 		pkt->ipi_spec_dst.s_addr = 0;
 		msg.msg_controllen = cmptr->cmsg_len = CMSG_LEN(sizeof(struct in_pktinfo));

@@ -78,6 +78,7 @@ static struct dhcp_packet_with_opts *packet_rcv_udp(int sd, unsigned char *buf, 
 	struct iovec iov;
 	struct sockaddr_in saddr;
 
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = control_u.control;
 	msg.msg_controllen = sizeof(control_u);
 	msg.msg_name = &saddr;
@@ -400,6 +401,7 @@ int main(int argc, char **argv)
 		switch (c) {
 		case 'f':
 			strncpy(config_file, optarg, sizeof(config_file));
+			config_file[sizeof(config_file)-1] = '\0';
 			break;
 
 		case 'v':
