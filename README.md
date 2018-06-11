@@ -42,6 +42,16 @@ This configuration will listen for DHCP request on the local interface
 which has the IP address 198.19.20.1. An incoming DHCP request will
 then be relayed to a DHCP server at IP address 198.19.10.2.
 
+# Building
+Requirements on an Ubuntu 16.04 system:
+```
+apt-get install libnl-3-dev libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev
+```
+Build dhcp-helper:
+```
+./configure && make && make install
+```
+
 # Configuration
 
 simple.json - A very simple case where you only run the relay agent on one interface and no bridge.
