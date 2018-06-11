@@ -314,7 +314,7 @@ static void cleanup(struct ev_loop *loop)
 	}
 	/* UDP socket not necessary to 'restart' */
 	conf_free(cfg);
-	cleanup_nftables();
+	cleanup_nftables(cfg);
 }
 
 static struct ev_loop *init(struct ev_loop *loop, char *fname)

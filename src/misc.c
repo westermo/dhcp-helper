@@ -144,12 +144,37 @@ err_unlink:
 	return err;
 }
 
-void cleanup_nftables()
+int cleanup_nftables(cfg_t *cfg)
 {
-	if (system("nft  delete chain bridge filter " NFT_IN_CHAIN))
-		syslog2(LOG_ERR, "Failed deleting nftables input rules");
-	if (system("nft  delete chain bridge filter " NFT_FWD_CHAIN))
-		syslog2(LOG_ERR, "Failed deleting nftables forward rules");
+	cfg_group_t *group;
+	int anybridged = 0;
+	struct nl_sock *sk;
+
+	sk = nl_socket_alloc();
+	if (!sk) {
+		return 1;
+	}
+
+	if (nl_connect(sk, NETLINK_ROUTE))
+		goto err_free_sk;
+
+	TAILQ_FOREACH(group, &cfg->group_list, link) {
+		cfg_iface_t *iface;
+		TAILQ_FOREACH(iface, &group->iface_list, link) {
+			if (iface_is_bridged(sk, iface->ifindex))
+				anybridged = 1;
+		}
+	}
+
+	if (anybridged) {
+		if (system("nft  delete chain bridge filter " NFT_IN_CHAIN))
+			syslog2(LOG_ERR, "Failed deleting nftables input rules");
+		if (system("nft  delete chain bridge filter " NFT_FWD_CHAIN))
+			syslog2(LOG_ERR, "Failed deleting nftables forward rules");
+	}
+err_free_sk:
+	nl_socket_free(sk);
+	return 0;
 }
 
 /**
