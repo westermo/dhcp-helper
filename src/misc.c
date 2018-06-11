@@ -167,6 +167,7 @@ int cleanup_nftables(cfg_t *cfg)
 	}
 
 	if (anybridged) {
+		syslog2(LOG_DEBUG, "Some interfaces is bridged, remove nftables rules");
 		if (system("nft  delete chain bridge filter " NFT_IN_CHAIN))
 			syslog2(LOG_ERR, "Failed deleting nftables input rules");
 		if (system("nft  delete chain bridge filter " NFT_FWD_CHAIN))
