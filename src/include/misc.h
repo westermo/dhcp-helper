@@ -21,7 +21,7 @@
 #include "conf.h"
 
 int setup_nftables(cfg_t *cfg);
-void cleanup_nftables();
+int cleanup_nftables(cfg_t *cfg);
 int add_arp_entry(int ifindex, unsigned char *mac, struct sockaddr_in saddr);
 int add_fdb_entry(int ifindex, unsigned char *mac);
 #endif
