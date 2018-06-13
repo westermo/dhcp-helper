@@ -1,1 +1,3 @@
-TESTS = test-basic.sh
+CLEANFILES = *.trs *.log
+
+TESTS = check.sh
