@@ -12,7 +12,8 @@ before_install:
 
 install:
   - docker exec -t travis-ci bash -c "apt-get update;
-    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang python-scapy tcpdump iproute2; mv /usr/sbin/tcpdump /usr/local/bin/; ln -s /usr/local/bin/tcpdump /usr/sbin/"
+    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang tcpdump iproute2 python-pip;
+    mv /usr/sbin/tcpdump /usr/local/bin/; ln -s /usr/local/bin/tcpdump /usr/sbin/"
 
 script:
-  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make && make check"
+  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make && tests/ci/install.sh && tests/ci/run.sh"
