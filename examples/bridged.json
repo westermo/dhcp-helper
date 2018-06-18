@@ -4,7 +4,7 @@
             "type": "hostname"
         }
     },
-    "servers": [
+    "server": [
         {
             "address": "192.168.2.1",
             "port": 1067
@@ -14,11 +14,11 @@
             "port": 67
         }
     ],
-    "groups": [
+    "group": [
         {
             "ifname": "vlan1",
             "giaddr": "192.168.1.6",
-            "ifaces": [
+            "iface": [
                 {
                     "ifname": "eth0"
                 },
@@ -37,7 +37,7 @@
         {
             "ifname": "vlan2",
             "giaddr": "192.168.100.1",
-            "ifaces": [
+            "iface": [
                 {
                     "ifname": "eth3"
                 },

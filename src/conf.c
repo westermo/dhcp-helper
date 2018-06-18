@@ -122,7 +122,7 @@ static int read_ifaces(json_t *json, cfg_group_t *group)
 
 	TAILQ_INIT(&group->iface_list);
 
-	arr = json_object_get(json, "ifaces");
+	arr = json_object_get(json, "iface");
 	if (!json_is_array(arr)) {
 		cfg_iface_t *iface;
 
@@ -182,7 +182,7 @@ static int read_servers(json_t *json, cfg_t *cfg, cfg_group_t *group)
 	else
 		TAILQ_INIT(&cfg->server_list);
 
-	arr = json_object_get(json, "servers");
+	arr = json_object_get(json, "server");
 	if (!json_is_array(arr))
 		return 0;
 
@@ -222,7 +222,7 @@ static int read_group(json_t *json, cfg_t *cfg)
 	struct ifaddrs *ifap, *ifa;
 	cfg_group_t *group = NULL;
 
-	arr = json_object_get(json, "groups");
+	arr = json_object_get(json, "group");
 	if (!json_is_array(arr))
 		return 1;
 

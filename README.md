@@ -30,7 +30,7 @@ option). The simplest configuration look like this:
         {
             "address": "198.19.10.2"
         }],
-    "groups": [
+    "group": [
         {
             "giaddr": "198.19.20.1"
         }
@@ -63,14 +63,14 @@ bridged.json - More advanced case with multiple servers and running on a VLAN aw
     * **type** - remote id type can either be manual [string or hex values](#string-or-hex-values), hostname or giaddr
     * **data** - only applicable when using manual
 
-**servers** - array of servers, optional
+**server** - array of servers, optional
   * **address** - IPv4 address of server, required
   * **port** - TCP port for the server, optional (default port 67)
 
-**groups** - array of objects, required
+**group** - array of objects, required
   * **giaddr** - Local address to use when communicate with server, required
   * **ifname** - interface to broadcast answers to, if not specified it is the interface with giaddr, optional
-  * **ifaces** - array of objects, optional
+  * **iface** - array of objects, optional
     * **ifname** - the name of the interface, required
     * **circuit-id** - value to send to the server, see [String or hex values](#string-or-hex-values)
     * **server** - object of objects, optional if specified globally, override global configured servers
