@@ -1,9 +1,9 @@
 {
-    "servers": [
+    "server": [
 	{
 	    "address": "127.0.0.1"
 	}],
-    "groups": [
+    "group": [
 	{
 	    "ifname" : "lo",
 	    "giaddr": "198.10.1.1"
