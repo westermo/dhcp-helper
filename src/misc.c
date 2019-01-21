@@ -22,7 +22,10 @@
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
 #include <net/if_arp.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include <netlink/netlink.h>
 #include <netlink/route/link.h>
 #include <netlink/route/link/bridge.h>
 #include <netlink/route/neighbour.h>
