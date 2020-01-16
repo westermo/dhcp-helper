@@ -332,10 +332,14 @@ size_t remove_options(struct dhcp_packet_with_opts *mess, size_t sz)
 
 	tmp = option_find(mess, sz, OPTION_AGENT_ID, 0);
 	if (tmp) {
+		/* number of bytes from option 82 to end option */
 		int nbytes = end - tmp;
+		/* number of bytes for whole option 82 including option and length field */
+		int opt82_len = option_len(tmp) + 2;
 
-		memset(tmp, 0, nbytes);
-		return dhcp_packet_size(mess, end);
+		/* move rest of options after option 82 to where option 82 starts */
+		memmove(tmp, tmp + opt82_len, nbytes - opt82_len);
+		return dhcp_packet_size(tmp + nbytes - opt82_len, end);
 	}
 	return sz;
 }
