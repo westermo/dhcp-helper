@@ -159,12 +159,9 @@ static int read_ifaces(json_t *json, cfg_group_t *group)
 		memset(iface, 0, sizeof(*iface));
 		iface->ifindex = if_nametoindex(json_string_value(ifname));
 
-		option82 = json_object_get(obj, "option82");	/* Iface specific option82-settings */
-		if (json_is_object(option82)) {
-			json_t *circuit = json_object_get(option82, "circuit-id");
-
-			option82_parse_manual(circuit, iface->circuit_id, sizeof(iface->circuit_id), &iface->circuit_id_len);
-		}
+		/* Iface specific option82-settings */
+		json_t *circuit = json_object_get(obj, "circuit-id");
+		option82_parse_manual(circuit, iface->circuit_id, sizeof(iface->circuit_id), &iface->circuit_id_len);
 
 		TAILQ_INSERT_TAIL(&group->iface_list, iface, link);
 	}
