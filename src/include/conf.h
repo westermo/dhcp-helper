@@ -75,6 +75,7 @@ typedef struct cfg_t {
 	TAILQ_HEAD(, cfg_group_t) group_list;
 	cfg_opt82_t opt82;
 	int force_server_id;
+	int udp_listen_port;
 } cfg_t;
 
 int conf_read(cfg_t *cfg, char *file);

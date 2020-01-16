@@ -38,6 +38,7 @@
 #include "misc.h"
 
 static int sd_out = 0;
+static int sd_separate_in = 0;
 
 static ev_signal sighup_watcher;
 static ev_signal sigint_watcher;
@@ -45,6 +46,7 @@ static ev_signal sigquit_watcher;
 static ev_signal sigterm_watcher;
 
 static ev_io io_upstreams;
+static ev_io io_upstreams_separate_listen;
 
 static char config_file[128] = "/etc/dhcphelper.json";
 
@@ -244,6 +246,57 @@ static int setup_sockets_raw(struct ev_loop *loop, cfg_t *cfg)
 	return 0;
 }
 
+
+static int setup_socket_udp_separate_listen(struct ev_loop *loop, cfg_t *cfg)
+{
+	int udp_listen_port = cfg->udp_listen_port;
+	int oneopt = 1;
+
+	if (sd_separate_in > 0)
+		return 0;
+
+	/* If default port we only need to use one socket for send and receive,
+	 * at this point that has already been created (sd_out), so we just
+	 * return */
+	if (udp_listen_port == DHCP_SERVER_PORT)
+		return 0;
+
+	sd_separate_in = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
+	if (sd_separate_in == -1) {
+		perror("Unable to create in socket");
+		return 1;
+	}
+	if (setsockopt(sd_separate_in, SOL_IP, IP_PKTINFO, &oneopt, sizeof(oneopt)) == -1 ||
+	    setsockopt(sd_separate_in, SOL_SOCKET, SO_BROADCAST, &oneopt, sizeof(oneopt)) == -1) {
+		perror("Unable to set socket option, SO_BROADCAST");
+		close(sd_separate_in);
+		return 1;
+	}
+
+	if (setsockopt(sd_separate_in, SOL_SOCKET, SO_REUSEPORT, &oneopt, sizeof(oneopt)) == -1) {
+		perror("Unable to set socket option, SO_REUSEPORT");
+		close(sd_separate_in);
+		return 1;
+	}
+
+	struct sockaddr_in saddr;
+
+	memset(&saddr, 0, sizeof(saddr));
+
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(udp_listen_port);
+	saddr.sin_addr.s_addr = INADDR_ANY;
+	if (bind(sd_separate_in, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in))) {
+		perror("dhcp-helper: cannot bind DHCP high level socket");
+		return -1;
+	}
+
+	ev_io_init(&io_upstreams_separate_listen, packet_cb_udp, sd_separate_in, EV_READ);
+	ev_io_start(loop, &io_upstreams_separate_listen);
+
+	return 0;
+}
+
 /*
  * Setup socket for listening to packets form server and to be used 
  * for sending replies to clients.
@@ -312,7 +365,14 @@ static void cleanup(struct ev_loop *loop)
 			}
 		}
 	}
-	/* UDP socket not necessary to 'restart' */
+	/* If we have a non standard listen port, we need to "restart" that UDP
+	 * socket if the value have possibly been reconfigured. */
+	if (sd_separate_in > 0) {
+		ev_io_stop(loop, &io_upstreams_separate_listen);
+		close(sd_separate_in);
+		sd_separate_in = 0;
+	}
+
 	cleanup_nftables(cfg);
 	conf_free(cfg);
 }
@@ -329,7 +389,8 @@ static struct ev_loop *init(struct ev_loop *loop, char *fname)
 		return NULL;
 	}
 
-	if (setup_sockets_raw(loop, cfg) || setup_socket_udp(loop)) {
+	if (setup_sockets_raw(loop, cfg) || setup_socket_udp(loop) ||
+	    setup_socket_udp_separate_listen(loop, cfg)) {
 		syslog2(LOG_ERR, "Failed setting up required sockets.");
 		ev_break(loop, EVBREAK_ALL);
 		return NULL;
@@ -437,6 +498,7 @@ int main(int argc, char **argv)
 
 	conf_free(&cfg);
 	close(sd_out);
+	close(sd_separate_in);
 
 	return 0;
 }

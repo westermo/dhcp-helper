@@ -305,6 +305,14 @@ static int read_force_sid(json_t *json, cfg_t *cfg)
 	return 0;
 }
 
+static int read_udp_listen_port(json_t *json, cfg_t *cfg)
+{
+	if (read_int(json, &cfg->udp_listen_port, "udp-listen-port", 67))
+		return 1;
+
+	return 0;
+}
+
 /* Check that config is consistent, return 0 if not ok. */
 static int conf_validate(cfg_t *cfg)
 {
@@ -342,6 +350,8 @@ int conf_read(cfg_t *cfg, char *file)
 	if (read_force_sid(json, cfg))
 		goto err;
 
+	if (read_udp_listen_port(json, cfg))
+		goto err;
 
 	if (read_option82(json, cfg))
 		goto err;
