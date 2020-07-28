@@ -2,6 +2,9 @@ SUBDIRS = src tests
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
+doc_DATA            = README.md ChangeLog.md
+EXTRA_DIST          = README.md ChangeLog.md
+dist_man8_MANS      = dhcp-helper.8
 dist_noinst_SCRIPTS = autogen.sh
 
 # Generate MD5 checksum file
