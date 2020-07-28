@@ -340,7 +340,8 @@ size_t remove_options(struct dhcp_packet_with_opts *mess, size_t sz)
 
 		/* move rest of options after option 82 to where option 82 starts */
 		memmove(tmp, tmp + opt82_len, nbytes - opt82_len);
-		return dhcp_packet_size(tmp + nbytes - opt82_len, end);
+		return dhcp_packet_size((struct dhcp_packet_with_opts *)(tmp + nbytes - opt82_len), end);
 	}
+
 	return sz;
 }
