@@ -258,7 +258,7 @@ static int read_group(json_t *json, cfg_t *cfg)
 			for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
 				if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
 					sa = (struct sockaddr_in *)ifa->ifa_addr;
-					if (sa->sin_addr.s_addr == group->giaddr) {
+					if (sa->sin_addr.s_addr == (in_addr_t)group->giaddr) {
 						syslog2(LOG_DEBUG, "Found interface %s", ifa->ifa_name);
 						group->ifindex = if_nametoindex(ifa->ifa_name);
 						break;

@@ -69,7 +69,7 @@ cfg_group_t *find_group_by_giaddr(cfg_t *cfg, struct in_addr giaddr)
 
 	TAILQ_FOREACH(entry, &cfg->group_list, link) {
 		TAILQ_FOREACH(entry2, &entry->iface_list, link) {
-			if (entry->giaddr == giaddr.s_addr)
+			if ((in_addr_t)entry->giaddr == giaddr.s_addr)
 				return entry;
 		}
 	}
@@ -83,7 +83,7 @@ static int is_local_gw(cfg_t *cfg, in_addr_t s_addr)
 	cfg_group_t *entry;
 
 	TAILQ_FOREACH(entry, &cfg->group_list, link) {
-		if (s_addr == entry->giaddr)
+		if (s_addr == (in_addr_t)entry->giaddr)
 			return 1;
 	}
 	return 0;
