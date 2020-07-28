@@ -162,7 +162,7 @@ int handle_reply(cfg_t *cfg, struct dhcp_packet *packet, int ifindex, ssize_t sz
 	struct cmsghdr *cmptr;
 	int result = 0;
 
-	syslog2(LOG_DEBUG, "Received a reply.");
+	syslog2(LOG_DEBUG, "Received a reply on ifindex %d", ifindex);
 	/* packet from server send back to client */
 
 	group = find_group_by_giaddr(cfg, packet->giaddr);

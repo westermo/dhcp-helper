@@ -141,7 +141,7 @@ static int read_ifaces(json_t *json, cfg_group_t *group)
 
 	json_array_foreach(arr, i, obj) {
 		cfg_iface_t *iface;
-		json_t *ifname, *option82;
+		json_t *ifname;
 
 		if (!json_is_object(obj))
 			return 1;

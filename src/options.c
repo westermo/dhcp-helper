@@ -152,6 +152,7 @@ static size_t dhcp_packet_size(struct dhcp_packet_with_opts *mess, unsigned char
 	unsigned char *p = dhcp_skip_opts(&mess->options[0] + sizeof(u32));
 	size_t ret;
 
+	(void)real_end;		/* unused */
 	*p++ = OPTION_END;
 
 	if (option_bool(OPT_LOG_OPTS)) {
