@@ -1,18 +1,15 @@
-AC_INIT([dhcp-helper], [2.1], [], [dhcp-helper])
+AC_INIT([dhcp-helper], [2.2-pre], [], [dhcp-helper])
 AC_PREREQ([2.59])
-AC_CONFIG_HEADERS([src/include/config.h])
+AC_CONFIG_HEADERS([src/config.h])
 
-# check if the source folder is available
 AC_CONFIG_SRCDIR([src/dhcp-helper.c])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 
-# check for C++ preprocessor and compiler
 AC_PROG_CPP
 AC_PROG_CC
 
-AM_INIT_AUTOMAKE([1.10 foreign -Wall no-define])
-
-# use the C++ compiler for the following checks
-AC_LANG([C])
+# Lax strictness, don't define PACKAGE and VERSION in config.h
+AM_INIT_AUTOMAKE([1.10 foreign no-define])
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -40,8 +37,11 @@ AC_CHECK_HEADERS([sys/prctl.h])
 AC_CHECK_HEADERS([net/if_arp.h])
 
 AC_CHECK_HEADERS([linux/netlink.h])
-PKG_CHECK_MODULES([LIBNL], [libnl-3.0 libnl-genl-3.0 libnl-route-3.0])
 
+# Check for pkg-config first, warn if it's not installed
+PKG_PROG_PKG_CONFIG
+
+PKG_CHECK_MODULES([LIBNL], [libnl-3.0 libnl-genl-3.0 libnl-route-3.0])
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
 AC_CHECK_HEADER([ev.h],
@@ -61,6 +61,4 @@ AC_SUBST([AM_LDFLAGS])
 
 AC_SUBST([CFLAGS])
 
-AC_CONFIG_FILES([Makefile
-		 tests/Makefile])
 AC_OUTPUT

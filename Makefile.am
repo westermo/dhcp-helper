@@ -1,18 +1,6 @@
-SUBDIRS = tests
+SUBDIRS = src tests
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-
-# additional include paths necessary to compile the C++ library
-AM_CFLAGS = -fno-strict-aliasing -I$(top_srcdir)/src/include $(LIB_CFLAGS) $(LIBNL_CFLAGS) -Wall -O0 -g3 -fmessage-length=0  @AM_CFLAGS@
-
-dhcp_helper_LDADD = $(DEPS_LIBS) $(LIB_CFLAGS) $(JANSSON_LIBS) $(LIBNL_LIBS)
-
-bin_PROGRAMS = dhcp-helper
-dhcp_helper_SOURCES = \
-	src/dhcp-helper.c src/conf.c src/packet.c src/options.c src/logging.c src/misc.c
-
-pkginclude_HEADERS = \
-	src/include/conf.h src/include/misc.h src/include/logging.h src/include/options.h src/include/packet.h src/include/queue.h
 
 dist_noinst_SCRIPTS = autogen.sh
 
