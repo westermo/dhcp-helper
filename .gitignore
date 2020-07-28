@@ -33,6 +33,14 @@ config.*
 !src/include/config.*
 src/include/config.h
 src/include/config.h.in
+
+# https://www.gnu.org/software/global/
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+ID
+
 # https://www.gnu.org/software/libtool/
 
 /ltmain.sh
