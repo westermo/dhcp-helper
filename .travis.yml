@@ -1,3 +1,7 @@
+# Travis CI integration
+# Defaults to GNU GCC and autotools: ./configure && make && make test
+language: c
+
 sudo: required
 
 # It is not really needed, other than for showing correct language tag in Travis CI build log.
@@ -6,14 +10,41 @@ compiler:
   - gcc
   - clang
 
-before_install:
-  - docker run --privileged -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
-  - docker ps
+addons:
+  apt:
+    packages:
+      - tree
+      - libnl-3-dev
+      - libnl-3-200
+      - libnl-route-3-200
+      - libnl-genl-3-200
+      - libnl-route-3-dev
+      - libnl-genl-3-dev
+      - libjansson-dev
+      - libev-dev
+      - tcpdump
+      - python-pip
 
-install:
-  - docker exec -t travis-ci bash -c "apt-get update;
-    apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang tcpdump iproute2 python-pip;
-    mv /usr/sbin/tcpdump /usr/local/bin/; ln -s /usr/local/bin/tcpdump /usr/sbin/"
+# before_install:
+#   - docker run --privileged -d --name travis-ci -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
+#   - docker ps
 
+# install:
+#   - docker exec -t travis-ci bash -c "apt-get update;
+#     apt-get install -y libnl-3-dev libnl-3-200 libnl-route-3-200 libnl-genl-3-200 libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev build-essential autoconf automake pkg-config clang tcpdump iproute2 python-pip;
+#     mv /usr/sbin/tcpdump /usr/local/bin/; ln -s /usr/local/bin/tcpdump /usr/sbin/"
+
+# script:
+#   - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make && tests/ci/install.sh && tests/ci/run.sh"
+
+# We don't store generated files (configure and Makefile) in GIT,
+# so we must customize the default build script to run ./autogen.sh
 script:
-  - docker exec -t travis-ci bash -c "cd /travis; ./autogen.sh && ./configure && make && tests/ci/install.sh && tests/ci/run.sh"
+  - ./autogen.sh
+  - ./configure --prefix=
+  - make V=1 all
+  - make V=1 install-strip DESTDIR=~/tmp
+  - tree -h ~/tmp
+  - ldd ~/tmp/bin/dhcp-helper
+  - size ~/tmp/bin/dhcp-helper
+  - ~/tmp/bin/dhcp-helper -h
