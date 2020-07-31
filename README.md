@@ -1,19 +1,25 @@
-[![Build Status](https://travis-ci.com/westermo/dhcp-helper.svg?branch=master)](https://travis-ci.com/westermo/dhcp-helper)
-# dhcp-helper
+dhcp-helper - DHCP relay agent w/ Option 82 support
+===================================================
+[![License Badge][]][License] [![Travis Status][]][Travis]
 
-This DHCP relay agent is originally written by Simon Kelley
-<simon@thekelleys.org.uk>
+A DHCP relay agent is commonly used in routed networks with centralized
+DHCP services.  The relay agent is a service typically configured on a
+router where it converts all DHCP broadcast messages from clients into
+unicast messages which it forwards to the central DHCP server(s).
 
-DHCP Relay Agents are commonly used on routed networks with
-centralized DHCP services. The relay agent is a service that is
-typically configured on a router and converts DHCP broadcasts into
-unicast messages directed at the DHCP servers IP address.
+dhcp-helper listens for DHCP and BOOTP broadcasts on all its configured
+interfaces and relays them to DHCP or BOOTP servers elsewhere.  It also
+relays replies from the remote servers back to the hosts.  Once hosts
+are fully configured they can communicate directly with their servers
+and no longer need the services of a relay.
 
-dhcp-helper listens for DHCP and BOOTP broadcasts on configured
-interfaces and relays them to DHCP or BOOTP servers elsewhere. It also
-relays replies from the remote servers back to the configured
-hosts. Once hosts are fully configured they can communicate directly
-with their servers and no longer need the services of a relay.
+In some setups it is preferred to always enforce communication via the
+DHCP relay.  This usually coincides with requirements for DHCP Option
+82, i.e., where the relay tucks on extra information for the server
+regarding which port a host is connected to and from which relay the
+request is forwarded from.  In Option 82 terms these are called the
+circuit id and remote id, respectively.  For more information, see IETF
+[RFC 3046](https://tools.ietf.org/html/rfc3046).
 
 dhcp-helper is optimized to run on a VLAN aware bridge, but work as well
 for a much simpler use case (see simple.json). If running with a bridge
@@ -24,6 +30,7 @@ by the bridge.
 dhcp-helper requires a configuration file to operate correctly (default
 read from `/etc/dhcphelper.json` or specified via the `-f`
 option). The simplest configuration look like this:
+
 ```
 {
     "server": [
@@ -42,7 +49,10 @@ This configuration will listen for DHCP request on the local interface
 which has the IP address 198.19.20.1. An incoming DHCP request will
 then be relayed to a DHCP server at IP address 198.19.10.2.
 
-# Building
+
+Building
+--------
+
 Requirements on an Ubuntu 16.04 system:
 ```
 apt-get install libnl-3-dev libnl-route-3-dev libnl-genl-3-dev libjansson-dev libev-dev
@@ -52,7 +62,9 @@ Build dhcp-helper:
 ./configure && make && make install
 ```
 
-# Configuration
+
+Configuration
+-------------
 
 simple.json - A very simple case where you only run the relay agent on one interface and no bridge.
 bridged.json - More advanced case with multiple servers and running on a VLAN aware bridge.
@@ -103,3 +115,15 @@ as a string:
         }
     },
 ```
+
+
+Origin & References
+-------------------
+
+dhcp-helper was originally written by Simon Kelley <simon@thekelleys.org.uk>
+
+
+[License]:         https://en.wikipedia.org/wiki/GPL_license
+[License Badge]:   https://img.shields.io/badge/License-GPL%20v2-blue.svg
+[Travis]:          https://travis-ci.org/westermo/dhcp-helper
+[Travis Status]:   https://travis-ci.org/westermo/dhcp-helper.svg?branch=master
